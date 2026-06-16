@@ -75,6 +75,30 @@
     }
 
     .bottom-spacer { height: 56px; }
+
+    /* ===== 고객 후기 카드 롤링 ===== */
+    .rv-wrap { background:#f0f4ff; padding:36px 0 28px; }
+    .rv-head { text-align:center; padding:0 20px; margin-bottom:24px; }
+    .rv-badge { display:inline-block; background:#1A4FBE; color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; padding:5px 14px; border-radius:20px; margin-bottom:12px; }
+    .rv-title { font-size:24px; font-weight:700; color:#111; line-height:1.4; }
+    .rv-title strong { color:#1A4FBE; }
+    .rv-sub { font-size:13px; color:#888; margin-top:6px; }
+    .rv-outer { overflow:hidden; }
+    .rv-inner { display:flex; transition:transform 0.4s cubic-bezier(.4,0,.2,1); }
+    .rv-card { min-width:100%; padding:0 20px; box-sizing:border-box; }
+    .rv-card-box { background:#fff; border-radius:20px; box-shadow:0 4px 20px rgba(26,79,190,.10); overflow:hidden; }
+    .rv-photo { width:100%; height:200px; background:#dde4f5; display:flex; align-items:center; justify-content:center; font-size:56px; }
+    .rv-photo img { width:100%; height:100%; object-fit:cover; }
+    .rv-body { padding:18px 18px 20px; }
+    .rv-top { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .rv-ava { width:44px; height:44px; border-radius:50%; background:#1A4FBE; color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; flex-shrink:0; }
+    .rv-name { font-size:15px; font-weight:700; color:#222; }
+    .rv-meta { font-size:12px; color:#aaa; margin-top:2px; }
+    .rv-stars { font-size:16px; color:#FFB800; margin-bottom:10px; }
+    .rv-text { font-size:14px; color:#555; line-height:1.7; }
+    .rv-dots { display:flex; justify-content:center; gap:7px; margin-top:20px; }
+    .rv-dot { height:7px; width:7px; border-radius:4px; background:#c5cfe8; transition:all .3s; cursor:pointer; }
+    .rv-dot.on { background:#1A4FBE; width:22px; }
   </style>
 </head>
 <body>
@@ -108,6 +132,19 @@
 
   <!-- 09. 3단계 가입 절차 -->
   <img src="images/가입절차3_단어바꾼_찐최종.png" alt="3분이면 OK 3단계 간단 진행절차">
+
+  <!-- 고객 후기 카드 롤링 섹션 -->
+  <section class="rv-wrap">
+    <div class="rv-head">
+      <span class="rv-badge">⭐ REAL REVIEW</span>
+      <p class="rv-title">실제 고객 <strong>생생 후기</strong></p>
+      <p class="rv-sub">당현함과 함께한 고객님들의 이야기</p>
+    </div>
+    <div class="rv-outer" id="rvOuter">
+      <div class="rv-inner" id="rvInner"></div>
+    </div>
+    <div class="rv-dots" id="rvDots"></div>
+  </section>
 
   <!-- 10. 유심 결합할인 헤더 -->
   <img src="images/당현함대문(1)-24년12월11일-현금추가지원으로-유심-문구-변경_07 (1).gif" alt="유심 바꾸면 결합할인 + 현금 추가지원">
@@ -167,13 +204,79 @@
 </div>
 
 <script>
+  // 고객 후기 카드 롤링
+  (function(){
+    var reviews=[
+      {name:'김**',meta:'SK 인터넷 가입 · 2025.10',text:'당일 현금 입금이 진짜인지 반신반의했는데 설치 끝나고 바로 입금되더라고요. 덕분에 믿고 가입할 수 있었습니다!',photo:null},
+      {name:'이**',meta:'LG 인터넷 가입 · 2025.11',text:'기사님도 친절하고 상담도 빠르게 처리해주셨어요. 지원금도 다른 곳보다 훨씬 많았습니다.',photo:null},
+      {name:'박**',meta:'KT 인터넷 가입 · 2025.11',text:'카카오톡으로 문의했더니 바로 답장 오고 당일에 처리됐어요. 현금도 바로 받고 너무 좋았습니다.',photo:null},
+      {name:'최**',meta:'코웨이 정수기 렌탈 · 2025.12',text:'정수기 렌탈도 현금 준다는 게 처음엔 믿기지 않았는데 설치 당일에 바로 입금 확인했어요!',photo:null},
+      {name:'정**',meta:'SK알뜰 유심 결합 · 2025.12',text:'유심 결합하고 나서 매달 요금이 확 줄었어요. 인터넷이랑 유심 합치니 절약에 현금까지 일석이조!',photo:null},
+      {name:'강**',meta:'LG 헬로비전 가입 · 2026.01',text:'처음 인터넷 가입이라 걱정했는데 설명을 너무 잘 해주셨어요. 쉽게 처리하고 현금도 빠르게 받았어요.',photo:null},
+      {name:'윤**',meta:'LG전자 정수기 렌탈 · 2026.01',text:'렌탈인데 이렇게 현금 지원이 되는 줄 몰랐어요. 덕분에 부담 없이 좋은 정수기 쓰고 있습니다.',photo:null},
+      {name:'장**',meta:'SK 인터넷 재가입 · 2026.02',text:'2년 전에 한 번 했는데 이번에도 당현함으로 재가입했습니다. 믿을 수 있는 곳이라 또 찾아왔어요!',photo:null},
+      {name:'임**',meta:'KT 스카이라이프 가입 · 2026.02',text:'아파트에 스카이라이프 설치했는데 당현함이 지원금 제일 많이 줬어요. 앞으로도 여기서 할 것 같아요.',photo:null},
+      {name:'한**',meta:'LG 인터넷 가입 · 2026.03',text:'지인 소개로 왔는데 왜 진작 몰랐나 싶어요. 현금 당일 입금에 친절한 상담까지 완벽했습니다.',photo:null}
+    ];
+    var inner=document.getElementById('rvInner');
+    var dotsWrap=document.getElementById('rvDots');
+    var cur=0,timer;
+
+    reviews.forEach(function(r,i){
+      var card=document.createElement('div');
+      card.className='rv-card';
+      var photoEl=r.photo
+        ?'<div class="rv-photo"><img src="'+r.photo+'" alt="후기사진"></div>'
+        :'<div class="rv-photo">📷</div>';
+      card.innerHTML=photoEl+
+        '<div class="rv-card-box">'+photoEl+
+        '<div class="rv-body">'+
+        '<div class="rv-top"><div class="rv-ava">'+r.name[0]+'</div>'+
+        '<div><div class="rv-name">'+r.name+'</div><div class="rv-meta">'+r.meta+'</div></div></div>'+
+        '<div class="rv-stars">★★★★★</div>'+
+        '<p class="rv-text">'+r.text+'</p>'+
+        '</div></div>';
+      // 구조 재정리
+      card.innerHTML=
+        '<div class="rv-card-box">'+photoEl+
+        '<div class="rv-body">'+
+        '<div class="rv-top"><div class="rv-ava">'+r.name[0]+'</div>'+
+        '<div><div class="rv-name">'+r.name+'</div><div class="rv-meta">'+r.meta+'</div></div></div>'+
+        '<div class="rv-stars">★★★★★</div>'+
+        '<p class="rv-text">'+r.text+'</p>'+
+        '</div></div>';
+      inner.appendChild(card);
+
+      var dot=document.createElement('div');
+      dot.className='rv-dot'+(i===0?' on':'');
+      dot.onclick=(function(idx){return function(){goTo(idx);clearInterval(timer);start();};})(i);
+      dotsWrap.appendChild(dot);
+    });
+
+    function goTo(idx){
+      cur=(idx+reviews.length)%reviews.length;
+      inner.style.transform='translateX(-'+cur*100+'%)';
+      document.querySelectorAll('.rv-dot').forEach(function(d,i){d.classList.toggle('on',i===cur);});
+    }
+    function start(){timer=setInterval(function(){goTo(cur+1);},4000);}
+    function stop(){clearInterval(timer);}
+
+    var outer=document.getElementById('rvOuter'),tx=0;
+    outer.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;stop();},{passive:true});
+    outer.addEventListener('touchend',function(e){
+      var d=tx-e.changedTouches[0].clientX;
+      if(Math.abs(d)>40){d>0?goTo(cur+1):goTo(cur-1);}
+      start();
+    },{passive:true});
+
+    goTo(0);start();
+  })();
+
   function trackKakao() {
-    fbq('track', 'Contact');
-    // gtag('event', 'kakao_click', { event_category: 'CTA' });
+    fbq('trackCustom', 'KakaoClick');
   }
   function trackCall() {
-    fbq('track', 'Contact');
-    // gtag('event', 'call_click', { event_category: 'CTA' });
+    fbq('trackCustom', 'PhoneClick');
   }
 </script>
 </body>
