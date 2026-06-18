@@ -220,56 +220,72 @@
     ];
     var inner=document.getElementById('rvInner');
     var dotsWrap=document.getElementById('rvDots');
-    var cur=0,timer;
+    var N=reviews.length,timer;
 
-    reviews.forEach(function(r,i){
-      var card=document.createElement('div');
-      card.className='rv-card';
+    function cardHTML(r){
       var photoEl=r.photo
         ?'<div class="rv-photo"><img src="'+r.photo+'" alt="후기사진"></div>'
         :'<div class="rv-photo">📷</div>';
-      card.innerHTML=photoEl+
-        '<div class="rv-card-box">'+photoEl+
+      return '<div class="rv-card-box">'+photoEl+
         '<div class="rv-body">'+
         '<div class="rv-top"><div class="rv-ava">'+r.name[0]+'</div>'+
         '<div><div class="rv-name">'+r.name+'</div><div class="rv-meta">'+r.meta+'</div></div></div>'+
         '<div class="rv-stars">★★★★★</div>'+
         '<p class="rv-text">'+r.text+'</p>'+
         '</div></div>';
-      // 구조 재정리
-      card.innerHTML=
-        '<div class="rv-card-box">'+photoEl+
-        '<div class="rv-body">'+
-        '<div class="rv-top"><div class="rv-ava">'+r.name[0]+'</div>'+
-        '<div><div class="rv-name">'+r.name+'</div><div class="rv-meta">'+r.meta+'</div></div></div>'+
-        '<div class="rv-stars">★★★★★</div>'+
-        '<p class="rv-text">'+r.text+'</p>'+
-        '</div></div>';
-      inner.appendChild(card);
+    }
 
+    // 맨 앞에 마지막 카드 복제, 맨 뒤에 첫 카드 복제 → 끝에서 다음으로 넘어가도 자연스럽게 이어짐
+    var slideData=[reviews[N-1]].concat(reviews, [reviews[0]]);
+    slideData.forEach(function(r){
+      var card=document.createElement('div');
+      card.className='rv-card';
+      card.innerHTML=cardHTML(r);
+      inner.appendChild(card);
+    });
+
+    reviews.forEach(function(r,i){
       var dot=document.createElement('div');
       dot.className='rv-dot'+(i===0?' on':'');
-      dot.onclick=(function(idx){return function(){goTo(idx);clearInterval(timer);start();};})(i);
+      dot.onclick=(function(idx){return function(){stop();goTo(idx+1);start();};})(i);
       dotsWrap.appendChild(dot);
     });
 
-    function goTo(idx){
-      cur=(idx+reviews.length)%reviews.length;
-      inner.style.transform='translateX(-'+cur*100+'%)';
-      document.querySelectorAll('.rv-dot').forEach(function(d,i){d.classList.toggle('on',i===cur);});
+    var pos=1; // 1~N이 실제 후기 0~N-1번에 대응 (0과 N+1은 복제 카드)
+
+    function updateDots(realIdx){
+      document.querySelectorAll('.rv-dot').forEach(function(d,i){d.classList.toggle('on',i===realIdx);});
     }
-    function start(){timer=setInterval(function(){goTo(cur+1);},4000);}
+    function setPos(p,animate){
+      inner.style.transition=animate?'':'none';
+      inner.style.transform='translateX(-'+(p*100)+'%)';
+      updateDots(((p-1)%N+N)%N);
+      if(!animate){
+        inner.getBoundingClientRect();
+        inner.style.transition='';
+      }
+    }
+    function goTo(p){pos=p;setPos(pos,true);}
+    function next(){goTo(pos+1);}
+    function prev(){goTo(pos-1);}
+
+    inner.addEventListener('transitionend',function(){
+      if(pos===N+1){pos=1;setPos(pos,false);}
+      else if(pos===0){pos=N;setPos(pos,false);}
+    });
+
+    function start(){timer=setInterval(next,4000);}
     function stop(){clearInterval(timer);}
 
     var outer=document.getElementById('rvOuter'),tx=0;
     outer.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;stop();},{passive:true});
     outer.addEventListener('touchend',function(e){
       var d=tx-e.changedTouches[0].clientX;
-      if(Math.abs(d)>40){d>0?goTo(cur+1):goTo(cur-1);}
+      if(Math.abs(d)>40){d>0?next():prev();}
       start();
     },{passive:true});
 
-    goTo(0);start();
+    setPos(pos,false);start();
   })();
 
   function trackKakao() {
